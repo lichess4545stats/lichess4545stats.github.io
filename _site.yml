@@ -1,0 +1,52 @@
+name: "lichess4545-stats"
+title: "Lichess4545 Statistics"
+theme: styles.css
+favicon: img/favicon.png
+base_url: https://rahulan-c.github.io/lichess4545-stats/
+repository_url: https://github.com/rahulan-c/lichess4545-stats
+google_analytics: "G-Q3CEQ766D1"
+description: |
+  Statistical reports for the Lichess4545 online chess leagues
+output_dir: "docs"
+include:
+navbar:
+  logo:
+    image: img/favicon.png
+    href: https://www.lichess.org
+  right:
+      - icon: fa-home
+        href: index.html
+      - text: "Stats"
+        href: season_stats.html
+        menu:
+        - text: "By season"
+          href: season_stats.html
+        - text: "Awards"
+          href: awards_search.html
+        - text: "All-time records"
+          href: alltime_stats.html
+        - text: "Team logos"
+          href: team_logos.html
+      - text: "Other"
+        href: round_updates.html
+        menu:
+        - text: "Match stories"
+          href: round_updates.html
+        - text: "Live standings"
+          href: live.html
+        - text: "Players by country"
+          href: countries.html
+      - text: "About"
+      - icon: fa-info
+        menu:
+        - text: "About"
+          href: about.html
+        - text: "---------"
+        - text: "Links"
+        - text: "Lichess4545"
+          href: https://www.lichess4545.com/
+        - text: "Lichess"
+          href: https://www.lichess.org
+        search: true
+  source_url: https://github.com/rahulan-c/lichess4545-stats
+output: distill::distill_article

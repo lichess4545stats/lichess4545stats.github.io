@@ -1,0 +1,156 @@
+---
+title: "Season stats and awards"
+description: |
+  Winners, stats, and awards by league and season
+site: distill::distill_website
+output: distill::distill_article
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, knitr, fs)
+```
+
+```{r all_time_pgns}
+# Publish links to latest all-seasons PGNs
+# For 4545, LW Open, LW U1800, Chess960, Rapid Battle, Quest, and Series
+# N.B. 4545 PGN won't have any S1 games, since its stats report hasn't been published
+
+# Copy all-seasons PGNs into /pgns
+# Overwrite existing files with the same name
+
+league_names <- c("team4545", "lwopen", "lwu1800", "chess960", "quest", "rb", "series", "teamlwseries")
+pgn_filenames_original <- paste0("allgames_", league_names, ".pgn")
+
+for(p in pgn_filenames_original){
+  fs::file_copy(path = paste0(here::here(), "/data/", p),
+                new_path = paste0(here::here(), "/docs/pgns/",
+                                  p),
+                overwrite = TRUE)
+}
+
+```
+
+
+
+
+
+```{r season_reports_tbl}
+
+# Identify all seasons for which stats reports have been compiled
+
+reports_path <- paste0(here::here(), "/docs/reports/")
+
+# 4545
+completed_4545 <- list.files(path = reports_path, pattern = "^stats_4545(.*)\\.html$") 
+any_4545 <- ifelse(length(completed_4545) > 0, T, F)
+if(length(completed_4545) > 0){
+  completed_4545 <- completed_4545 %>% 
+    str_remove_all("stats_4545_s") %>% 
+    str_remove_all("\\.html") %>% 
+    sort(decreasing = T) %>% 
+    paste0("[Season ", ., "]", "(https://rahulan-c.github.io/lichess4545-stats/reports/stats_4545_s", ., ".html)")
+}
+
+# LW Open
+completed_lwopen <- list.files(path = reports_path, pattern = "^stats_lwopen(.*)\\.html$")
+any_lwopen <- ifelse(length(completed_lwopen) > 0, T, F)
+if(length(completed_lwopen) > 0){
+  completed_lwopen <- completed_lwopen %>% 
+    str_remove_all("stats_lwopen_s") %>% 
+    str_remove_all("\\.html") %>% 
+    sort(decreasing = T) %>% 
+    paste0("[Season ", ., "]", "(https://rahulan-c.github.io/lichess4545-stats/reports/stats_lwopen_s", ., ".html)")
+}
+
+# LW U1800
+completed_lwu1800 <- list.files(path = reports_path, pattern = "^stats_lwu1800(.*)\\.html$")
+any_lwu1800 <- ifelse(length(completed_lwu1800) > 0, T, F)
+if(length(completed_lwu1800) > 0){
+ completed_lwu1800 <- completed_lwu1800 %>%  
+   str_remove_all("stats_lwu1800_s") %>% 
+   str_remove_all("\\.html") %>% 
+   sort(decreasing = T) %>% 
+   paste0("[Season ", ., "]", "(https://rahulan-c.github.io/lichess4545-stats/reports/stats_lwu1800_s", ., ".html)")
+}
+
+# Chess960
+completed_960 <- list.files(path = reports_path, pattern = "^stats_chess960(.*)\\.html$")
+any_960 <- ifelse(length(completed_960) > 0, T, F)
+if(length(completed_960) > 0){
+ completed_960 <- completed_960 %>%  
+   str_remove_all("stats_chess960_s") %>% 
+   str_remove_all("\\.html") %>% 
+   sort(decreasing = T) %>% 
+   paste0("[Season ", ., "]", "(https://rahulan-c.github.io/lichess4545-stats/reports/stats_chess960_s", ., ".html)")
+}
+
+
+
+# Make sure all completed season vectors are the same length
+most_completed <- max(c(length(completed_4545), 
+                      length(completed_lwopen), 
+                      length(completed_lwu1800),
+                      length(completed_960)))
+
+if(length(completed_4545) < most_completed){
+  completed_4545 <- c(completed_4545, rep("", most_completed - length(completed_4545)))
+}
+
+if(length(completed_lwopen) < most_completed){
+  completed_lwopen <- c(completed_lwopen, rep("", most_completed - length(completed_lwopen)))
+}
+
+if(length(completed_lwu1800) < most_completed){
+  completed_lwu1800 <- c(completed_lwu1800, rep("", most_completed - length(completed_lwu1800)))
+}
+
+if(length(completed_960) < most_completed){
+  completed_960 <- c(completed_960, rep("", most_completed - length(completed_960)))
+}
+
+
+# Make league cols empty if there are no completed seasons
+if(any_4545 == F){completed_4545 <- rep("", most_completed)}
+if(any_lwopen == F){completed_lwopen <- rep("", most_completed)}
+if(any_lwu1800 == F){completed_lwu1800 <- rep("", most_completed)}
+if(any_960 == F){completed_960 <- rep("", most_completed)}
+
+# Construct and show table of league reports by season
+completed <- tibble("team4545" = completed_4545,
+                    "lwopen" = completed_lwopen,
+                    "lwu1800" = completed_lwu1800,
+                    "chess960" = completed_960)
+
+knitr::kable(completed, 
+             col.names = c("4545 / Team", 
+                           "LW Open", 
+                           "LW U1800",
+                           "Chess960"))
+
+```
+
+### PGNs
+
+- [4545 / Team](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_team4545.pgn) (44,799 games, seasons 2-44, played 2015-10-27 to 2025-07-07)
+- [LoneWolf (Open)](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_lwopen.pgn) (20,413 games, seasons 1-36, played 2015-11-17 to 2025-05-05)
+- [LoneWolf (U1800)](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_lwu1800.pgn) (9,193 games, seasons 9-36, played 2017-11-14 to 2025-05-05)
+- [Chess960](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_chess960.pgn) (3,010 games, seasons 2-36, played 2018-6-11 to 2025-07-27)
+
+*Community leagues*
+
+- [Series](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_series.pgn) (90+30) - 4,390 games, S1 (Nov 2017) to S28 (Dec 2024 - Feb 2025)
+- [Rapid Battle](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_rb.pgn) (15+10) - recorded games up to Nov 2022
+- [Quest](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_quest.pgn) (15+10) - includes recorded games played up to Nov 2022
+
+*Combined - classical leagues*
+
+- [4545 + LoneWolf + Series](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_teamlwseries.pgn) (75,366 games, last updated 2025-03-25)
+
+### Notes
+
+- Many result-based stats are based on Lichess game data and therefore do not account for forfeits and unplayed games.
+- The chart showing the positions of the top 5 teams each season ([example](https://rahulan-c.github.io/lichess4545-stats/reports/stats_4545_s29.html#How_the_title_race_played_out)) is retroactively calculated so it doesn't necessarily capture positions at the time of each round and it won't show how any Lichess fair play decisions might have affected the standings.
+- Some of the LoneWolf season reports have incorrect gambit-related information.   
+- All league-playing accounts that have been banned by Lichess for ToS violations should be ineligible for any award. However, some ineligible players may still appear in older reports. 

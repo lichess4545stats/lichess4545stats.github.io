@@ -1,0 +1,407 @@
+---
+title: "Lichess4545 Stats"
+description: "Unofficial stats, records and other stuff"
+site: distill::distill_website
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, data.table, assertthat, xml2, rvest, lubridate, knitr, 
+               gt, cli, rmarkdown)
+
+# Utility functions from:
+# https://github.com/mfherman/westchester-covid/blob/master/R/build/utils.R
+
+day_month_year <- function(x, abbr = FALSE) {
+  if(all(lubridate::is.Date(x) || lubridate::is.POSIXt(x))) {
+  glue::glue("{lubridate::day(x)} {lubridate::month(x, label = TRUE, abbr = abbr)} {lubridate::year(x)}")
+  } else
+    stop("Input vector must be Date or POSIX format.")
+}
+
+pretty_time <- function(x) {
+  if(all(lubridate::is.POSIXt(x))) {
+  paste(as.numeric(format(x, "%I")), format(x, "%M %p"), sep = ":")
+  } else
+    stop("Input vector must be POSIX format.")
+}
+
+```
+
+
+```{r get_league_statuses}
+
+# Variables to capture:
+# league, season, round, regs_open, regs_closed, active_midseason,
+# inactive_preseason, inactive_postseason, reg_link, tv_link
+
+today <- lubridate::today()
+root <- "https://www.lichess4545.com/"
+web_leagues <- c("team4545", "lonewolf", "chess960")
+season_durations <- c(8, 11, 7)
+all_leagues <- list()
+
+
+# Check status of each website league
+for (l in seq(1:length(web_leagues))){
+  
+  league <- web_leagues[[l]]
+  duration <- season_durations[[l]]
+  homepage <- read_html(paste0(root, league, "/"))
+  inactive_preseason <- FALSE
+  
+  # Identify current season
+  if(league %in% c("team4545", "chess960")){
+    season <- homepage %>% 
+      rvest::html_element(".col-xs-12+ .col-xs-12 .well:nth-child(1) h3") %>% 
+      html_text2() %>% 
+      str_extract("Season.+$") %>% 
+      str_extract("\\d+") %>% 
+      as.integer()
+  } else {
+    # LW
+    season <- homepage %>% 
+      rvest::html_element(".col-xs-12+ .col-xs-12 .well:nth-child(1) h3") %>% 
+      html_text2() %>% 
+      str_extract("#.+\\s") %>% 
+      str_extract("\\d+") %>% 
+      as.integer()
+  }
+  
+  
+  assert_that(is.number(season))
+  Sys.sleep(0.2)
+  
+  # Identify current round
+  if(is.na(season)){ 
+      # If season == NA, regs are open but the season hasn't started yet
+      # So we need to first identify the new season number
+      website_regs_open <- homepage %>% html_text2() %>% str_detect("Registration is open!")
+      if(website_regs_open){
+        regs_open <- TRUE
+        inactive_preseason <- TRUE
+        # Get season number
+        season <- homepage %>% 
+          rvest::html_element(".well+ .well p") %>% 
+          html_text2() %>%
+          str_extract("(?<=Season\\s)\\d+")
+        round <- NA_integer_
+      }
+  } else {
+    # Non-NA season numbers...
+    if(league %in% c("team4545", "chess960")){
+      round <- read_html(paste0(root, league, "/season/", season, "/pairings/")) %>% 
+        rvest::html_element(".round-switcher:nth-child(1) .dropdown-toggle") %>% 
+        html_text2() %>% 
+        str_extract("\\d+") %>% 
+        as.integer()
+    } else {
+      # LW
+      round <- read_html(paste0(root, league, "/season/", season, "/pairings/")) %>% 
+        rvest::html_element(".inline+ .round-switcher .dropdown-toggle") %>% 
+        html_text2() %>% 
+        str_extract("\\d+") %>% 
+        as.integer()
+    }
+  }
+  
+  assert_that(is.number(round))
+
+  
+  # Check whether the current season is technically in the postseason, ie all
+  # games have been played but the season hasn't been closed yet.Looks for a 
+  # winners table on the season summary page with the header "Season X Winners". 
+  # If this isn't found, then the season hasn't been closed.
+  
+  if((league == "team4545") & (!(is.na(round))) & (round == 8)) {
+    Sys.sleep(0.2)
+    inactive_postseason <- read_html(paste0(root, league, "/season/", season, "/summary/")) %>% 
+      rvest::html_element(".col-md-8 h3") %>% 
+      html_text2() %>% 
+      str_detect("Winners")
+    
+  } else if ((league == "lonewolf") & (!(is.na(round))) & (round == 11)){
+    Sys.sleep(0.2)
+    inactive_postseason <- read_html(paste0(root, league, "/season/", season, "/summary/")) %>% 
+      rvest::html_element(".col-md-8 h3") %>% 
+      html_text2() %>% 
+      str_detect("Winners")
+  
+  } else if ((league == "chess960") & (!(is.na(round))) & (round == 7)){
+    Sys.sleep(0.2)
+    inactive_postseason <- read_html(paste0(root, league, "/season/", season, "/summary/")) %>% 
+      rvest::html_element(".col-md-8 h3") %>% 
+      html_text2() %>% 
+      str_detect("Winners")
+  
+  } else {
+    inactive_postseason <- FALSE
+  }
+
+  if(inactive_preseason){inactive_postseason <- F}
+  
+  # ---- Identify leagues in progress -----------------------------------------
+  if(!(inactive_preseason) & !(inactive_postseason) & (!(is.na(season)))){
+    active_season <- TRUE
+  } else {
+    active_season <- FALSE
+  }
+  
+  # ----- Identify season dates -----------------------------------------------
+  # Requires "Season X ends on Month DD, YYYY" to appear on the league homepage
+  # Doesn't show when registrations are closed
+  website_regs_open <- homepage %>% html_text2() %>% str_detect("Registration is open!")
+  
+
+  # If registrations are open...
+  if(website_regs_open){
+    if(league == "team4545"){
+      season_end <- homepage %>% 
+        rvest::html_element(".well+ .well p") %>% 
+        html_text2() %>% 
+        str_extract("(Jan.|Feb.|Mar.|Apr.|May|Jun.|Jul.|Aug.|Sep.|Oct.|Nov.|Dec.)\\s\\d+,\\s\\d{4}") %>% 
+        # str_extract("(January|February|March|April|May|June|July|August|September|October|November|December)\\s\\d+,\\s\\d{4}") %>% 
+        str_remove_all(",") %>% 
+        lubridate::mdy()
+      
+      # cli::cli_inform("season_end: {season_end}")
+      
+    } else if (league == "chess960"){
+      season_end <- homepage %>% 
+        rvest::html_element(".well+ .well p") %>% 
+        html_text2() %>% 
+        str_extract("(Jan.|Feb.|Mar.|Apr.|May|Jun.|Jul.|Aug.|Sep.|Oct.|Nov.|Dec.)\\s\\d+,\\s\\d{4}") %>% 
+        str_remove_all(",") %>% 
+        lubridate::mdy()
+    }
+  } else {
+    
+    # If registrations are closed...
+    # Try identifying season dates from scheduled dates on pairings page
+    pairings_url <- paste0(root, league, "/season/", season, "/pairings/")
+    pairings_url <- "https://www.lichess4545.com/lonewolf/season/24/pairings/" # testing
+    scheduled_times <- read_html(pairings_url) %>% 
+      rvest::html_elements("time") %>% 
+      rvest::html_text2()
+    scheduled_times <- scheduled_times[!is.na(scheduled_times)]
+    pairing_date <- sample(scheduled_times, 1) %>% 
+      str_sub(1, 5) %>% 
+      str_c(., "/", lubridate::year(lubridate::today())) %>% 
+      lubridate::mdy()
+    
+    # Find date when current round started
+    round_start <- pairing_date - lubridate::wday(pairing_date - 2)
+    
+    # Get season end date
+    season_end <- round_start + lubridate::weeks(duration - round + 1)
+  }
+  
+  # Identify season start date
+  if(inactive_preseason){
+    # If pre-season, ie rosters have been posted, then the season front page will 
+    # just say "Season X starts on Month DD, YYYY."
+    # So what we previously identified as the season end date is actually the 
+    # season's start date
+    season_start <- season_end
+    season_end <- season_start + lubridate::weeks(duration)
+  } else if ((round == duration) & (website_regs_open)){
+    # Similarly, a league is technically in pre-season if regs are open but the 
+    # league frontpage still shows the last season's final standings. This is 
+    # indicates that rosters haven't been posted yet. We need to be able to 
+    # identify this, as again what we identified as the season end date is
+    # actually the season start date.
+    season_start <- season_end
+    season_end <- season_start + lubridate::weeks(duration)
+    inactive_preseason <- TRUE
+    inactive_postseason <- FALSE
+    round <- NA_character_
+    active_season <- FALSE
+    season <- season + 1
+  } else {
+    # For non pre-season leagues, we can compute the season start date by 
+    # subtracting the league's season length in weeks from the identified end date.
+    season_start <- season_end - lubridate::weeks(duration)
+  }
+  
+  # Convert season dates to human-readable format
+  season_start_label <- paste0(lubridate::day(season_start), 
+                         " ",
+                         lubridate::month(season_start, label = T, abbr = T))
+
+  season_end_label <- paste0(lubridate::day(season_end), 
+                         " ",
+                         lubridate::month(season_end, label = T, abbr = T))
+  
+  cli::cli_inform("{league} starts {season_start_label} ends {season_end_label}")
+  
+  if(inactive_postseason){
+    season_start_label <- NA_character_
+    season_end_label <- NA_character_
+    round <- NA_character_
+  }
+  
+  reg_link <- ifelse(website_regs_open, paste0("https://www.lichess4545.com/", 
+                                       league, "/register/"),
+                     NA_character_)
+  
+  tv_link <- ifelse(active_season, paste0("https://www.lichess4545.com/", 
+                                          league, "/season/", season, "/tv/"),
+                    NA_character_)
+  
+  # Summarise league status data
+  all_leagues[[l]] <- c(league, season, round, season_start_label, season_end_label, 
+                        reg_link, inactive_preseason, inactive_postseason, 
+                        active_season, tv_link)
+}
+
+# Collate all leagues' status data into a tibble
+statuses <- all_leagues %>% as.list()
+names(statuses) <- web_leagues
+statuses <- statuses %>% dplyr::bind_rows()
+statuses <- as.data.frame(t(statuses))
+colnames(statuses) <- c("league", "season", "round", "starts", "ends", "reg_link", 
+                        "preseason", "postseason", 
+                        "active", "tv_link")
+
+# Consolidate active, preseason, and postseason variables into a single status 
+# variable
+statuses <- statuses %>% 
+  mutate(status = case_when(
+    active == TRUE ~ paste0("Active - Season ", season, " is ongoing and will end on ", ends, "."),
+    preseason == TRUE ~ paste0("Currently off-season. Season ", season, " will start on ", starts, "."),
+    postseason == TRUE ~ paste0("Currently off-season. Season ", season, " has ended, but registrations for the next season aren't open yet."),
+    TRUE ~ NA_character_
+  ))
+
+statuses <- statuses %>% dplyr::select(
+  league, status, reg_link
+)
+
+# Prepare hyperlinks
+statuses <- statuses %>% 
+  mutate(
+    reg_link = ifelse(!(is.na(reg_link)), 
+                      glue::glue("[Register]({reg_link})"),
+                      ""),
+    reg_link = map(reg_link, gt::md))
+
+# Make final table
+status_tbl <- 
+  gt(statuses) %>%
+  tab_header(title = "Current league statuses") %>% 
+  cols_label(
+    league = "",
+    status = "",
+    reg_link = ""
+  ) %>% 
+  text_transform(
+    locations = cells_body(columns = league),
+    fn = function(x){
+      local_image(
+        # filename = test_image(type = "png"),
+        filename = paste0(here::here(), "/site/img/league_logos/", x, "_blue.svg")
+      )
+    }
+  ) %>% 
+  tab_source_note(
+    md(
+      "Current community leagues situation, as of August 2024: **Infinite Quest** is going strong, **Series** (90+30) is about to start its 27th season, and Rapid Battle is on hiatus (last season ended in Oct 2023). Check out the [Lichess4545 overview](https://bit.ly/35w1xqH) to learn more about these and other community leagues!"
+    )
+  ) # |> 
+  # gtsave("league_statuses.html", inline_css = TRUE)
+
+```
+
+</br>
+</br>
+
+
+<!-- top element: intro text -->
+
+<div class = "index-row-narrow l-page" style = "font-size:1.2rem;line-height:1.2em;font-family:'Lato', sans-serif;">
+
+Welcome to my unofficial [Lichess4545](https://www.lichess4545.com) stats site!
+
+</div>
+
+</br>
+
+<!-- central elements: 3 x 3 image matrix / main links -->
+
+<div class="index-row l-page"> <!-- closed on line 368 -->
+
+<!-- left element: 3 x 3 image matrix -->
+
+  <div class="index-column-l l-page">
+  <img src="img/site_logo.png" alt="Site Logo"></img>
+  </div> 
+  
+<!-- right element: site menu -->
+
+<div class="index-column-r l-page" style = "font-family:'Lato', sans-serif;"> <!-- closed on line 367 -->
+
+<span style = "font-size:1.6rem;">
+[Season stats and awards &#10230;](season_stats.html)
+</span></br>
+Stats for every Lichess4545, LoneWolf and Lichess960 season
+
+<span style = "font-size:1.6rem;">
+[Award winners &#10230;](awards_search.html)
+</span></br>
+Details on every player mentioned in a season report
+
+<span style = "font-size:1.6rem;">
+[All-time records &#10230;](alltime_stats.html)
+</span></br>
+NEW: A collection of all-time records.
+
+<span style = "font-size:1.6rem;">
+[Match stories &#10230;](https://rahulan-c.github.io/lichess4545-stats/round_updates.html)
+</span></br>
+Visualisations of Lichess4545 matches (S27 onwards)  
+
+<span style = "font-size:1.6rem;">
+Other stuff
+</span></br>
+[Team logos](https://rahulan-c.github.io/lichess4545-stats/team_logos.html) | [Players by continent/country](https://rahulan-c.github.io/lichess4545-stats/countries.html)
+
+<span style = "font-size:1.6rem;">
+[About the site &#10230;](about.html)
+</span></br>
+    </div> <!-- closes line 342 -->
+  </div> <!-- closes line 332 -->
+
+
+<br>
+<br>
+
+
+<!-- bottom element: league status table -->
+
+<div class="index-row-narrow l-page">
+  <!-- <div class = "index-column-m l-page"> -->
+`r status_tbl`
+  <!-- </div> -->
+  </div> <!-- closes line 385 -->
+
+
+  
+<!-- Show date when page was last updated -->
+
+## Last updated on {.appendix}
+```{r,echo=FALSE}
+day_month_year(Sys.Date(), abbr = TRUE)
+```
+
+
+```{css}
+d-title, d-byline {
+  display: none
+}
+```
+
+
+
+

@@ -1,0 +1,178 @@
+---
+title: "Team logo gallery"
+author:
+  - name: izzie26
+date: "`r Sys.Date()`"
+output:
+  distill::distill_article
+site: distill_website
+base_url: https://rahulan-c.github.io/lichess4545-stats/
+---
+
+Here are all the Lichess4545 team logos that have ever been made, according to me. They're shown in reverse season order, with recent seasons first. Click on each image to enlarge it. Depending on your browser, some of the gallery symbols might not show up for you; they don't for me :)
+
+
+```{r echo = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE
+)
+
+# Load all required packages
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, magick, here, htmltools, fs)
+```
+
+<!-- Set up gallery -->
+<head>
+<link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.0/css/lightgallery.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery-js/1.4.1-beta.0/js/lightgallery.min.js"></script>
+<!-- lightgallery plugins -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lg-fullscreen/1.2.1/lg-fullscreen.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lg-thumbnail/1.2.1/lg-thumbnail.min.js"></script>
+</head>
+
+```{css}
+.column {
+  float: left;
+  width: 45%;
+  margin-left: 1rem;
+}
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+#lightgallery > a > img:hover {
+   transform: scale(1.15, 1.15);
+   transition: 0.4s ease-in-out;
+   cursor: pointer;
+}
+/* For some reason, icons are not loaded so I choose them myself */
+.lg-actions .lg-next {
+  content:"\1433"
+}
+.lg-actions .lg-prev {
+  content:"\1438"
+}
+.lg-toolbar .lg-download {
+ content:"\2913"
+}
+.lg-toolbar .lg-close {
+ content:"\00D7"
+}
+.lg-toolbar .lg-icon {
+	background-color: #000;
+	border-color: #000;
+	border-style: solid;
+}
+```
+
+
+```{r, include = FALSE, eval = TRUE}
+# Make thumbnail of a full-size image
+# Must already be saved in /site/team_logos/fullsize
+
+cli::cli_h1("Constructing team logos gallery")
+cli::cli_h2("Checking for full-size logos that need thumbnails")
+
+images_path <- paste0(here::here(), "/site/team_logos/")
+
+# Identify any full-size images that need thumbnails
+current_fullsize <- fs::dir_info(paste0(images_path, "fullsize/")) %>% 
+  filter(type == "file") %>% 
+  filter(str_detect(path, "s\\d{2}_")) %>%
+  select(path) %>%
+  mutate(across(path, as.character)) %>% 
+  dplyr::pull() %>% 
+  str_remove(paste0(images_path, "fullsize/"))
+
+cli::cli_alert_info("Found {length(current_fullsize)} file{?s} in full-size logos folder.")
+
+current_thumbnails <- fs::dir_info(paste0(images_path, "thumbs/")) %>% 
+  filter(type == "file") %>% 
+  filter(str_detect(path, "s\\d{2}_")) %>%
+  select(path) %>%
+  mutate(across(path, as.character)) %>% 
+  dplyr::pull() %>% 
+  str_remove(paste0(images_path, "thumbs/")) %>% 
+  str_remove("thumb-")
+
+cli::cli_alert_info("Found {length(current_thumbnails)} file{?s} in thumbnails folder.")
+
+require_thumbs <- setdiff(current_fullsize, current_thumbnails)
+
+# Enter filename of full-size logo to convert
+# fullsize_filename <- paste0("s33_sweaty.png")
+
+if(length(require_thumbs) > 0){
+  cli::cli_alert_warning("{length(require_thumbs)} logo{?s} need thumbails")
+  
+  resize_image <- function(image, file) {
+    imFile <- magick::image_read(file)
+    imFile_resized <- magick::image_resize(imFile, "x100")
+    magick::image_write(imFile_resized, paste0(images_path, "/thumbs/thumb-", image))
+  }
+  
+  # Make thumbnails
+  for(i in require_thumbs){
+    resize_image(image = i, file = paste0(images_path, "/fullsize/", i))
+  }
+  cli::cli_alert_success("{length(require_thumbs)} new thumbnail{?s} created")
+  
+} else {
+  cli::cli_alert_info("No new logos saved")
+}
+
+```
+
+
+```{r, include = FALSE}
+# Make gallery
+
+make_gallery_layout <- function() {
+
+  # Get the names of all full-size images
+  images <- list.files("fullsize/")
+  images_full_size <- grep("thumb", images, value = TRUE, invert = TRUE)
+  images_full_size <- sort(images_full_size, decreasing = T)
+
+  # Get the names of all thumbnails
+  thumbs <- list.files("thumbs/")
+  images_thumb <- grep("thumb", thumbs, value = TRUE)
+  images_thumb <- sort(images_thumb, decreasing = T)
+
+  
+  # Create a dataframe where each row is one image (useful for
+  # the apply() function)
+  images <- data.frame(images_thumb = images_thumb,
+                       images_full_size = images_full_size)
+
+  # Create the HTML structure for each image
+  htmltools::tagList(apply(images, 1, function(x) {
+      htmltools::tags$a(
+        href = paste0("fullsize/", x[["images_full_size"]]),
+        htmltools::tags$img(src = paste0("thumbs/", x[["images_thumb"]]))
+      )
+  }))
+
+}
+```
+
+```{r}
+# Create layout
+htmltools::withTags(
+  div(
+    class = "row",
+    id = "lightgallery",
+    tagList(
+      make_gallery_layout()
+    )
+  )
+)
+
+```
+
+<script type="text/javascript">
+    lightGallery(document.getElementById('lightgallery'));
+</script>

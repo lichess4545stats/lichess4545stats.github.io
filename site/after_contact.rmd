@@ -6,5 +6,5 @@ site: distill::distill_website
 
 Thanks for getting in touch!
 
-Click [here](https://rahulan-c.github.io/lichess4545-stats) to return to the home page.
+Click [here](https://lichess4545stats.github.io/docs) to return to the home page.
 

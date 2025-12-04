@@ -61,7 +61,7 @@ GetPodiumPlayersFromReports <- function(url, tag){
 
 
 
-[Return to home page](https://rahulan-c.github.io/lichess4545-stats/)
+[Return to home page](https://lichess4545stats.github.io/docs/)
 
 ```{r setup}
 # Min games to qualify as title winner
@@ -89,7 +89,7 @@ if(scrub_cheats){
 # published season reports
 
 ## Get published season stats URLs
-season_reports_url <- "https://rahulan-c.github.io/lichess4545-stats/season_stats.html"
+season_reports_url <- "https://lichess4545stats.github.io/docs/season_stats.html"
 season_reports <- read_html_live(season_reports_url) %>% 
   html_nodes("table") %>% 
   html_nodes("tr") %>% 
@@ -306,7 +306,7 @@ TBC
 # published LW season reports
 
 ## Get published season stats URLs
-season_reports_url <- "https://rahulan-c.github.io/lichess4545-stats/season_stats.html"
+season_reports_url <- "https://lichess4545stats.github.io/docs/season_stats.html"
 season_reports <- read_html_live(season_reports_url) %>% 
   html_nodes("table") %>% 
   html_nodes("tr") %>% 

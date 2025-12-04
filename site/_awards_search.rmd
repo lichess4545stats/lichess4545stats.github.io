@@ -61,7 +61,7 @@ GetPodiumPlayersFromReports <- function(url, tag){
 
 The table below contains the details of every player recognised in a season report. It covers all three main leagues: 4545, LoneWolf (Open and U1800), and Chess960. It records season winners, second and third place finishers, board medal winners (for 4545), best U2000/U1600 award winners (LoneWolf), season award winners, and season award "honourable mentions". Details are included for award winners. See below the table for a list of award definitions.
 
-[Return to home page](https://rahulan-c.github.io/lichess4545-stats/)
+[Return to home page](https://lichess4545stats.github.io/docs/)
 
 ```{r setup}
 # Min games to qualify as title winner
@@ -86,7 +86,7 @@ if(scrub_cheats){
 # Crawl over the other reports and present all winners in one table
 
 ## Get published season stats URLs
-season_reports_url <- "https://rahulan-c.github.io/lichess4545-stats/season_stats.html"
+season_reports_url <- "https://lichess4545stats.github.io/docs/season_stats.html"
 season_reports <- read_html_live(season_reports_url) %>% 
   html_nodes("table") %>% 
   html_nodes("tr") %>% 
@@ -122,7 +122,7 @@ cli::cli_h2("Updating all-time awards search page...")
 
 # # Extract all links from season reports table on homepage
 # cli::cli_inform("Identifying published reports...")
-# homepage_url <- "https://rahulan-c.github.io/lichess4545-stats/season_stats.html"
+# homepage_url <- "https://lichess4545stats.github.io/docs/season_stats.html"
 # 
 # season_reports <- xml2::read_html(homepage_url) %>% 
 #   html_nodes("table") %>% 

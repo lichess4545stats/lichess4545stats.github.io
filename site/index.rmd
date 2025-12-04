@@ -358,14 +358,14 @@ Details on every player mentioned in a season report
 NEW: A collection of all-time records.
 
 <span style = "font-size:1.6rem;">
-[Match stories &#10230;](https://rahulan-c.github.io/lichess4545-stats/round_updates.html)
+[Match stories &#10230;](https://lichess4545stats.github.io/docs/round_updates.html)
 </span></br>
 Visualisations of Lichess4545 matches (S27 onwards)  
 
 <span style = "font-size:1.6rem;">
 Other stuff
 </span></br>
-[Team logos](https://rahulan-c.github.io/lichess4545-stats/team_logos.html) | [Players by continent/country](https://rahulan-c.github.io/lichess4545-stats/countries.html)
+[Team logos](https://lichess4545stats.github.io/docs/team_logos.html) | [Players by continent/country](https://lichess4545stats.github.io/docs/countries.html)
 
 <span style = "font-size:1.6rem;">
 [About the site &#10230;](about.html)

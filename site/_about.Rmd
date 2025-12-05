@@ -14,7 +14,7 @@ pacman::p_load(tidyverse, knitr)
 
 ### Latest updates
 
--  2024-08-19: Compiled and published latest season reports; updated [league PGNs](https://lichess4545stats.github.io/docs/season_stats.html#pgns).
+-  2024-08-19: Compiled and published latest season reports; updated [league PGNs](https://rahulan-c.github.io/lichess4545-stats/season_stats.html#pgns).
 
 ### Contact me {#contact}
 

@@ -672,7 +672,7 @@ reactable(openings_exclvar, pagination = TRUE, fullWidth = TRUE, resizable = TRU
 - This report was compiled on `r format(Sys.Date(), '%d %B %Y')`.
 - These statistics are presented for general interest only. They are not guaranteed to be comprehensive, complete^[For example, this report excludes from its analysis all games of less than 5 plies (half-moves), games that ended in a disconnection or by "cheat detected", games that were aborted, and games that started from a custom position.], accurate, or up to date. They may be periodically revised to incorporate updates and bugfixes.
 - Any player determined by Lichess to have violated their Terms of Service when this report was compiled should not appear in the detailed statistics.^[However, players who were banned from the Lichess4545 leagues after finishing a season in the top three places are still shown with a podium place in that season's report.]
-- [Homepage](https://lichess4545stats.github.io/docs/) / [source code](https://github.com/rahulan-c/lichess4545-stats)
+- [Homepage](https://rahulan-c.github.io/lichess4545-stats/) / [source code](https://github.com/rahulan-c/lichess4545-stats)
 :::
 
 

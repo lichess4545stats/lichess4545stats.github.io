@@ -6,7 +6,7 @@ date: "`r Sys.Date()`"
 output:
   distill::distill_article
 site: distill_website
-base_url: https://lichess4545stats.github.io/docs/
+base_url: https://rahulan-c.github.io/lichess4545-stats/
 ---
 
 Here are all the Lichess4545 team logos that have ever been made, according to me. They're shown in reverse season order, with recent seasons first. Click on each image to enlarge it. Depending on your browser, some of the gallery symbols might not show up for you; they don't for me :)

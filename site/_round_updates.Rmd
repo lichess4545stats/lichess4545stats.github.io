@@ -116,7 +116,7 @@ story_paths <- list.files(path = paste0(here::here(), "/docs/reports/stories/"),
 story_labels <- story_paths %>% str_remove_all("_allmatches\\.pdf")
 
 story_labels_md <- glue::glue(
-  "[{story_labels}](https://lichess4545stats.github.io/docs/reports/stories/{story_paths})"
+  "[{story_labels}](https://rahulan-c.github.io/lichess4545-stats/reports/stories/{story_paths})"
 )
 
 story_seasons <- story_labels %>% 

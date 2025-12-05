@@ -75,6 +75,8 @@ if(scrub_cheats){
   # Get list of ToS violators
   # Requires SourceScripts() to have been run first (in scratchpad.R)
   source(glue("{here()}/R/identify_tos_violators.R"))
+} else {
+  tos_violators <- character(0)  # Empty vector if not scrubbing
 }
 ```
 
@@ -123,7 +125,7 @@ cli::cli_h2("Updating all-time awards search page...")
 # # Extract all links from season reports table on homepage
 # cli::cli_inform("Identifying published reports...")
 # homepage_url <- "https://lichess4545stats.github.io/docs/season_stats.html"
-# 
+#
 # season_reports <- xml2::read_html(homepage_url) %>% 
 #   html_nodes("table") %>% 
 #   html_nodes("tr") %>% 
@@ -365,15 +367,18 @@ awards <- awards %>%
   tibble::as_tibble()
 
 # Scrub ToS violators
-tos_violators <- identify_tos_violators() # requires SourceScripts() to have been run
-
-toscrub <- str_c(tos_violators, collapse = "|") 
-awards$Winner <- stringr::str_remove_all(awards$Winner, 
-                                                  toscrub)
-# Tidy up any after-effects
-awards$Winner <- str_replace_all(awards$Winner, "^,\\s", "")
-awards$Winner <- str_replace_all(awards$Winner, ",\\s,", ",")
-awards$Winner <- str_replace_all(awards$Winner, ",\\s,", ",")
+# tos_violators variable was already loaded in the setup chunk from identify_tos_violators.R
+# Create toscrub pattern (will be used later too)
+if(length(tos_violators) > 0) {
+  toscrub <- str_c(tos_violators, collapse = "|")
+  awards$Winner <- stringr::str_remove_all(awards$Winner, toscrub)
+  # Tidy up any after-effects
+  awards$Winner <- str_replace_all(awards$Winner, "^,\\s", "")
+  awards$Winner <- str_replace_all(awards$Winner, ",\\s,", ",")
+  awards$Winner <- str_replace_all(awards$Winner, ",\\s,", ",")
+} else {
+  toscrub <- ""  # Empty string for later checks
+}
 
 # # Save and publish new all-seasons table
 # readr::write_csv(latest_awards,
@@ -427,9 +432,11 @@ awards_final <- awards_final %>%
   dplyr::select(Player, Award, league, season, position, Details)
 
 # Do a final scrub of all ineligible players
-awards_final$Player <- stringr::str_remove_all(
-  stringr::str_to_lower(awards_final$Player), 
-  stringr::str_to_lower(toscrub))
+if(toscrub != "") {
+  awards_final$Player <- stringr::str_remove_all(
+    stringr::str_to_lower(awards_final$Player),
+    stringr::str_to_lower(toscrub))
+}
 
 # Remove rows with empty 'player' values
 awards_final <- awards_final %>% 

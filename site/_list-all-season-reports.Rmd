@@ -20,7 +20,7 @@ pacman::p_load(tidyverse, knitr, fs)
 # Copy all-seasons PGNs into /pgns
 # Overwrite existing files with the same name
 
-league_names <- c("team4545", "lwopen", "lwu1800", "chess960", "quest", "rb", "series", "teamlwseries")
+league_names <- c("team4545", "lwopen", "lwu1800", "chess960")#, "quest", "rb", "series", "teamlwseries")
 pgn_filenames_original <- paste0("allgames_", league_names, ".pgn")
 
 for(p in pgn_filenames_original){
@@ -50,7 +50,7 @@ if(length(completed_4545) > 0){
     str_remove_all("stats_4545_s") %>% 
     str_remove_all("\\.html") %>% 
     sort(decreasing = T) %>% 
-    paste0("[Season ", ., "]", "(https://lichess4545stats.github.io/docs/reports/stats_4545_s", ., ".html)")
+    paste0("[Season ", ., "]", "(https://rahulan-c.github.io/lichess4545-stats/reports/stats_4545_s", ., ".html)")
 }
 
 # LW Open
@@ -61,7 +61,7 @@ if(length(completed_lwopen) > 0){
     str_remove_all("stats_lwopen_s") %>% 
     str_remove_all("\\.html") %>% 
     sort(decreasing = T) %>% 
-    paste0("[Season ", ., "]", "(https://lichess4545stats.github.io/docs/reports/stats_lwopen_s", ., ".html)")
+    paste0("[Season ", ., "]", "(https://rahulan-c.github.io/lichess4545-stats/reports/stats_lwopen_s", ., ".html)")
 }
 
 # LW U1800
@@ -72,7 +72,7 @@ if(length(completed_lwu1800) > 0){
    str_remove_all("stats_lwu1800_s") %>% 
    str_remove_all("\\.html") %>% 
    sort(decreasing = T) %>% 
-   paste0("[Season ", ., "]", "(https://lichess4545stats.github.io/docs/reports/stats_lwu1800_s", ., ".html)")
+   paste0("[Season ", ., "]", "(https://rahulan-c.github.io/lichess4545-stats/reports/stats_lwu1800_s", ., ".html)")
 }
 
 # Chess960
@@ -83,7 +83,7 @@ if(length(completed_960) > 0){
    str_remove_all("stats_chess960_s") %>% 
    str_remove_all("\\.html") %>% 
    sort(decreasing = T) %>% 
-   paste0("[Season ", ., "]", "(https://lichess4545stats.github.io/docs/reports/stats_chess960_s", ., ".html)")
+   paste0("[Season ", ., "]", "(https://rahulan-c.github.io/lichess4545-stats/reports/stats_chess960_s", ., ".html)")
 }
 
 
@@ -133,24 +133,24 @@ knitr::kable(completed,
 
 ### PGNs
 
-- [4545 / Team](https://lichess4545stats.github.io/docs/pgns/allgames_team4545.pgn) (44,799 games, seasons 2-44, played 2015-10-27 to 2025-07-07)
-- [LoneWolf (Open)](https://lichess4545stats.github.io/docs/pgns/allgames_lwopen.pgn) (20,413 games, seasons 1-36, played 2015-11-17 to 2025-05-05)
-- [LoneWolf (U1800)](https://lichess4545stats.github.io/docs/pgns/allgames_lwu1800.pgn) (9,193 games, seasons 9-36, played 2017-11-14 to 2025-05-05)
-- [Chess960](https://lichess4545stats.github.io/docs/pgns/allgames_chess960.pgn) (3,010 games, seasons 2-36, played 2018-6-11 to 2025-07-27)
+- [4545 / Team](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_team4545.pgn) (44,799 games, seasons 2-44, played 2015-10-27 to 2025-07-07)
+- [LoneWolf (Open)](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_lwopen.pgn) (20,413 games, seasons 1-36, played 2015-11-17 to 2025-05-05)
+- [LoneWolf (U1800)](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_lwu1800.pgn) (9,193 games, seasons 9-36, played 2017-11-14 to 2025-05-05)
+- [Chess960](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_chess960.pgn) (3,010 games, seasons 2-36, played 2018-6-11 to 2025-07-27)
 
 *Community leagues*
 
-- [Series](https://lichess4545stats.github.io/docs/pgns/allgames_series.pgn) (90+30) - 4,390 games, S1 (Nov 2017) to S28 (Dec 2024 - Feb 2025)
-- [Rapid Battle](https://lichess4545stats.github.io/docs/pgns/allgames_rb.pgn) (15+10) - recorded games up to Nov 2022
-- [Quest](https://lichess4545stats.github.io/docs/pgns/allgames_quest.pgn) (15+10) - includes recorded games played up to Nov 2022
+- [Series](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_series.pgn) (90+30) - 4,390 games, S1 (Nov 2017) to S28 (Dec 2024 - Feb 2025)
+- [Rapid Battle](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_rb.pgn) (15+10) - recorded games up to Nov 2022
+- [Quest](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_quest.pgn) (15+10) - includes recorded games played up to Nov 2022
 
 *Combined - classical leagues*
 
-- [4545 + LoneWolf + Series](https://lichess4545stats.github.io/docs/pgns/allgames_teamlwseries.pgn) (75,366 games, last updated 2025-03-25)
+- [4545 + LoneWolf + Series](https://rahulan-c.github.io/lichess4545-stats/pgns/allgames_teamlwseries.pgn) (75,366 games, last updated 2025-03-25)
 
 ### Notes
 
 - Many result-based stats are based on Lichess game data and therefore do not account for forfeits and unplayed games.
-- The chart showing the positions of the top 5 teams each season ([example](https://lichess4545stats.github.io/docs/reports/stats_4545_s29.html#How_the_title_race_played_out)) is retroactively calculated so it doesn't necessarily capture positions at the time of each round and it won't show how any Lichess fair play decisions might have affected the standings.
+- The chart showing the positions of the top 5 teams each season ([example](https://rahulan-c.github.io/lichess4545-stats/reports/stats_4545_s29.html#How_the_title_race_played_out)) is retroactively calculated so it doesn't necessarily capture positions at the time of each round and it won't show how any Lichess fair play decisions might have affected the standings.
 - Some of the LoneWolf season reports have incorrect gambit-related information.   
 - All league-playing accounts that have been banned by Lichess for ToS violations should be ineligible for any award. However, some ineligible players may still appear in older reports. 

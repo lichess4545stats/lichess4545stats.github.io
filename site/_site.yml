@@ -2,8 +2,9 @@ name: "lichess4545-stats"
 title: "Lichess4545 Statistics"
 theme: styles.css
 favicon: img/favicon.png
-base_url: https://lichess4545stats.github.io/
-repository_url: https://github.com/lichess4545stats/lichess4545stats.github.io
+base_url: https://rahulan-c.github.io/lichess4545-stats/
+repository_url: https://github.com/rahulan-c/lichess4545-stats
+google_analytics: "G-Q3CEQ766D1"
 description: |
   Statistical reports for the Lichess4545 online chess leagues
 output_dir: "docs"
@@ -47,5 +48,5 @@ navbar:
         - text: "Lichess"
           href: https://www.lichess.org
         search: true
-  source_url: https://github.com/lichess4545stats/lichess4545stats.github.io
+  source_url: https://github.com/rahulan-c/lichess4545-stats
 output: distill::distill_article
